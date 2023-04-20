@@ -1,91 +1,56 @@
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from './page.module.css'
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer"
 
-const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+const getBlogsData =async () => {
+    try{
+
+   
+    const blogData = await fetch("https://cdn.contentful.com/spaces/e4jo3xrvu1cj/entries?access_token=MiSmt-ZD4IwCvVvYQX56TECya48kEpjt1HDbuV7UKYM&content_type=blog")
+    
+    if(!blogData.ok){
+        console.log("Unable to find blog data")
+        throw new Error("Unable to find blog data...");
+    }
+
+        return blogData.json();
+    }
+    catch(error){
+        console.log(error)
+    }
+} 
+
+const Home = async () => {
+    const blogData= await getBlogsData()
+    // console.log(blogData)
+
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+      <div>
+        <h1 className="uppercase font-extrabold text-5xl text-center m-5 text-blue-900">My First Headless CMS Blog Site</h1>
+        
+        {blogData.items.map((blog:any)=>{
+
+        const blogImg = blogData.includes.Asset.find((img:any)=>img.sys.id===blog.fields.image.sys.id)
+        const imgUrl = blogImg.fields.file.url
+        // console.log(imgUrl)
+            
+        const authorData = blogData.includes.Entry.find((author:any)=>author.sys.id===blog.fields.author.sys.id)
+        const authorName = authorData.fields.name
+        // console.log(authorName)
+    
+    return(
+        <div className="m-5" key={blog.sys.id}>
+            <h1 className="text-2xl font-extrabold mb-2 ">{blog.fields.title}</h1>
+            <p className="flex flex-wrap">{documentToReactComponents(blog.fields.description)}</p>
+            <div className="flex">
+                <img className="h-72 w-96 mt-5" src={imgUrl} alt="Image" />
+            <h1 className="m-10 mt-36 text-red-700"> {"Author: "+ authorName}</h1>
+                </div>
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-        <div className={styles.thirteen}>
-          <Image src="/thirteen.svg" alt="13" width={40} height={31} priority />
-        </div>
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    )
+})}
+    </div>
   )
 }
+
+export default Home
